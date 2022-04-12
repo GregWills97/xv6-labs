@@ -187,11 +187,17 @@ kalloc(void)
       /* Multiple pages at a time */
       if(has_pages(next_neighbor, 8)) {
         steal_pages(cpu_id, next_neighbor, 4);
-      } else {
-          if(has_pages(next_neighbor, 1))
-            steal_pages(cpu_id, next_neighbor, 1);
+        goto finished;
+      }else if(has_pages(next_neighbor, 4)) {
+        steal_pages(cpu_id, next_neighbor, 2);
+        goto finished;
+      }else if(has_pages(next_neighbor, 1)) {
+        steal_pages(cpu_id, next_neighbor, 1);
+        goto finished;
       }
-      
+
+
+finished:
       //Pages should be in freelist now
       acquire(&kmem[cpu_id].lock);
       r = kmem[cpu_id].freelist;
