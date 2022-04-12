@@ -29,11 +29,14 @@ struct {
 void
 kinit()
 {
-  char lock_name[8];
+  int n = 0;
+  int sz = 1024;
+  char lock_name[sz];
   //initialize all locks for CPU
   for(int i = 0; i < NCPU; i++) {
-    snprintf(lock_name, 8, "kmem%d", i); 
-    initlock(&kmem[i].lock, "kmem");
+    int pos = snprintf(lock_name + n, sz-n, "kmem%d", i); 
+    initlock(&kmem[i].lock, lock_name + n);
+    n = n + (pos+1);
   }
   freerange(end, (void*)PHYSTOP);
 }
