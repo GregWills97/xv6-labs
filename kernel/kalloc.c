@@ -118,10 +118,13 @@ int has_pages(int cpu, int n) {
   while(r) {
     r = r->next;
     count++;
+
+    if(count >= n)
+      break;
   }
   release(&kmem[cpu].lock);
 
-  return (count == n) ? 1 : 0;
+  return (count >= n) ? 1 : 0;
 }
 
 // Steal n pages from cpu_src to cpu_dst
@@ -182,9 +185,11 @@ kalloc(void)
 
 
       /* Multiple pages at a time */
-      ///*
-      if(has_pages(next_neighbor, 1)) {
-        steal_pages(cpu_id, next_neighbor, 1);
+      if(has_pages(next_neighbor, 8)) {
+        steal_pages(cpu_id, next_neighbor, 4);
+      } else {
+          if(has_pages(next_neighbor, 1))
+            steal_pages(cpu_id, next_neighbor, 1);
       }
       
       //Pages should be in freelist now
@@ -193,17 +198,6 @@ kalloc(void)
       if(r)
         kmem[cpu_id].freelist = r->next;
       release(&kmem[cpu_id].lock);
-      //*/
-
-      
-      /* Single Page taken Logic */
-      /*
-      acquire(&kmem[next_neighbor].lock);
-      r = kmem[next_neighbor].freelist;
-      if(r)
-        kmem[next_neighbor].freelist = r->next;
-      release(&kmem[next_neighbor].lock);
-      */
       
       if(r)
         break; //stop searching
